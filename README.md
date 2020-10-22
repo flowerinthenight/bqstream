@@ -28,7 +28,7 @@ streamer = bqstream.New("project01", "asia-northeast1", "dataset01", "table01")
 
 // Stream the data
 streamer.Add([]*Data{
-  &Data{
+	&Data{
 	  Key:  "samplekey",
 	  Body: "samplevalue",
 	},
