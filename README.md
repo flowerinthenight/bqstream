@@ -1,10 +1,10 @@
 ![Main](https://github.com/flowerinthenight/bqstream/workflows/Main/badge.svg)
 
-# bqstream
+## bqstream
 
 A simple wrapper library for streaming data to BigQuery.
 
-# Usage
+## Usage
 
 To use the library, you can do something like this:
 
