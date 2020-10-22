@@ -9,7 +9,7 @@ A simple wrapper library for streaming data to BigQuery.
 To use the library, you can do something like this:
 
 ```go
-// The data that we will be streaming to BigQuery
+// The data that we will be streaming to BigQuery.
 type Data struct {
 	Key   string
 	Value string
@@ -23,10 +23,10 @@ func (d *Data) Save() (map[string]bigquery.Value, string, error) {
 	}, "", nil
 }
 
-// Create a streamer for a table in Tokyo region
+// Create a streamer for a table in Tokyo region.
 streamer = bqstream.New("project01", "asia-northeast1", "dataset01", "table01")
 
-// Stream the data
+// Stream the data.
 streamer.Add([]*Data{
 	&Data{
 		Key:  "samplekey",
