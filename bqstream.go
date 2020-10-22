@@ -3,41 +3,25 @@ package bqstream
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
 	"runtime"
 
 	"cloud.google.com/go/bigquery"
-	"github.com/golang/glog"
 )
 
 type Option interface {
 	Apply(*BqStream)
 }
 
-type withProjectId string
+type withLogger struct{ l *log.Logger }
 
-func (w withProjectId) Apply(o *BqStream) { o.projectId = string(w) }
+func (w withLogger) Apply(o *BqStream) { o.logger = w.l }
 
-func WithProjectId(v string) Option { return withProjectId(v) }
-
-type withRegion string
-
-func (w withRegion) Apply(o *BqStream) { o.region = string(w) }
-
-func WithRegion(v string) Option { return withRegion(v) }
-
-type withDataset string
-
-func (w withDataset) Apply(o *BqStream) { o.dataset = string(w) }
-
-func WithDataset(v string) Option { return withDataset(v) }
-
-type withTable string
-
-func (w withTable) Apply(o *BqStream) { o.table = string(w) }
-
-func WithTable(v string) Option { return withTable(v) }
+func WithLogger(v *log.Logger) Option { return withLogger{v} }
 
 type BqStream struct {
+	logger    *log.Logger
 	projectId string
 	region    string
 	dataset   string
@@ -52,14 +36,14 @@ type BqStream struct {
 
 func (v *BqStream) worker(id int) {
 	defer func() {
-		glog.Infof("worker %v stopped", id)
+		v.logger.Printf("worker %v stopped", id)
 		v.wqdone <- struct{}{}
 	}()
 
 	for j := range v.wq {
 		err := v.inserter.Put(context.Background(), j)
 		if err != nil {
-			glog.Errorf("bqstream.Put failed: %v", err)
+			v.logger.Printf("bqstream.Put failed: %v", err)
 		}
 	}
 }
@@ -78,6 +62,7 @@ type StartInput struct {
 	StreamCount int
 }
 
+// Start sets up the streaming goroutines. Use the Add() function to write streaming data.
 func (v *BqStream) Start(ctx context.Context, in ...StartInput) error {
 	var err error
 	v.client, err = bigquery.NewClient(ctx, v.projectId)
@@ -93,7 +78,8 @@ func (v *BqStream) Start(ctx context.Context, in ...StartInput) error {
 		}
 	}
 
-	glog.Infof("starting %v worker(s) for bqstream", v.wqcnt)
+	v.logger.Printf("starting %v worker(s) for bqstream", v.wqcnt)
+
 	v.wq = make(chan interface{}, v.wqcnt)
 	v.wqdone = make(chan struct{}, v.wqcnt)
 	for i := 0; i < v.wqcnt; i++ {
@@ -104,6 +90,7 @@ func (v *BqStream) Start(ctx context.Context, in ...StartInput) error {
 	return nil
 }
 
+// Close stops all streaming goroutines and closes the BigQuery connection.
 func (v *BqStream) Close() {
 	if !v.started {
 		return
@@ -116,17 +103,22 @@ func (v *BqStream) Close() {
 	}
 }
 
-func New(opts ...Option) *BqStream {
+// New returns a BigQuery streaming object.
+func New(project, region, dataset, table string, opts ...Option) *BqStream {
 	v := &BqStream{
-		projectId: "mobingi-main",
-		region:    "asia-northeast1",
-		dataset:   "authd_txn",
-		table:     "prod",
+		projectId: project,
+		region:    region,
+		dataset:   dataset,
+		table:     table,
 		wqcnt:     runtime.NumCPU(),
 	}
 
 	for _, opt := range opts {
 		opt.Apply(v)
+	}
+
+	if v.logger == nil {
+		v.logger = log.New(os.Stdout, "[bqstream] ", 0)
 	}
 
 	return v
