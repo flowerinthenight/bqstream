@@ -4,6 +4,11 @@
 
 A simple wrapper library for streaming data to BigQuery.
 
+At the moment, authentication is done by providing the following environment variable:
+```
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/service/account/file.json
+```
+
 ## Usage
 
 To use the library, you can do something like this:
