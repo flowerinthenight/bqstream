@@ -1,4 +1,4 @@
-![Main](https://github.com/flowerinthenight/bqstream/workflows/Main/badge.svg)
+![main](https://github.com/flowerinthenight/bqstream/workflows/main/badge.svg)
 
 ## bqstream
 
