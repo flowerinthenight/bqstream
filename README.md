@@ -2,7 +2,7 @@
 
 ## bqstream
 
-A simple wrapper library for streaming data to BigQuery.
+A simple wrapper library for streaming data to BigQuery. By default, it will create streaming goroutines equal to the number of cores it's running on.
 
 At the moment, authentication is done by providing the following environment variable:
 ```
