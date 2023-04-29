@@ -1,4 +1,5 @@
 ![main](https://github.com/flowerinthenight/bqstream/workflows/main/badge.svg)
+[![Go Reference](https://pkg.go.dev/badge/github.com/flowerinthenight/bqstream.svg)](https://pkg.go.dev/github.com/flowerinthenight/bqstream)
 
 ## bqstream
 
