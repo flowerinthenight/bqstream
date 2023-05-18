@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"sync/atomic"
 
 	"cloud.google.com/go/bigquery"
 )
@@ -28,7 +29,7 @@ type BqStream struct {
 	table     string
 	client    *bigquery.Client
 	inserter  *bigquery.Inserter
-	started   bool
+	started   int32
 	wq        chan interface{}
 	wqdone    chan struct{}
 	wqcnt     int
@@ -51,11 +52,12 @@ func (v *BqStream) worker(id int) {
 // Add puts records to the streamer. It expects a slice of structs that implements
 // the bigquery.ValueSaver interface.
 func (v *BqStream) Add(txns interface{}) {
-	if !v.started {
+	switch {
+	case atomic.LoadInt32(&v.started) != 1:
 		return
+	default:
+		v.wq <- txns
 	}
-
-	v.wq <- txns
 }
 
 type StartInput struct {
@@ -86,16 +88,17 @@ func (v *BqStream) Start(ctx context.Context, in ...StartInput) error {
 		go v.worker(i)
 	}
 
-	v.started = true
+	atomic.StoreInt32(&v.started, 1)
 	return nil
 }
 
 // Close stops all streaming goroutines and closes the BigQuery connection.
 func (v *BqStream) Close() {
-	if !v.started {
+	if atomic.LoadInt32(&v.started) != 1 {
 		return
 	}
 
+	atomic.StoreInt32(&v.started, 0)
 	v.client.Close()
 	close(v.wq)
 	for i := 0; i < v.wqcnt; i++ {
