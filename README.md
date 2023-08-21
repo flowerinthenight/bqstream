@@ -1,6 +1,8 @@
 ![main](https://github.com/flowerinthenight/bqstream/workflows/main/badge.svg)
 [![Go Reference](https://pkg.go.dev/badge/github.com/flowerinthenight/bqstream.svg)](https://pkg.go.dev/github.com/flowerinthenight/bqstream)
 
+**NOTE: BigQuery recommends using its [Storage Write API](https://cloud.google.com/bigquery/docs/write-api) instead of the legacy streaming API which this library uses.**
+
 ## bqstream
 
 A simple wrapper library for streaming data to BigQuery. By default, it will create streaming goroutines equal to the number of cores it's running on.
